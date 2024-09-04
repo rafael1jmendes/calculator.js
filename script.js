@@ -11,7 +11,7 @@ function updateResult(originClear = false) {
 }
 
 function addDigit(digit) {
-    if (digit == "," && (currentNumber.includes(",") || !currentNumber))
+    if (digit === "," && (currentNumber.includes(",") || !currentNumber))
         return;
     if (restart) {
         currentNumber = digit;
@@ -22,8 +22,11 @@ function addDigit(digit) {
 
     updateResult();
 }
+
 function setOperator(newOperator) {
     if (currentNumber) {
+        calculate();
+
         firstOperand = parseFloat(currentNumber.replace(",", "."));
         currentNumber = "";
     }
@@ -32,7 +35,7 @@ function setOperator(newOperator) {
 }
 
 function calculate() {
-    if (operator == null || firstOperand == null) return;
+    if (operator === null || firstOperand === null) return;
     let secondOperand = parseFloat(currentNumber.replace(",", "."));
     let resultValue;
 
@@ -53,7 +56,7 @@ function calculate() {
             return;
     }
 
-    if (resultValue.toString().slipt(".")[1]?.length > 5) {
+    if (resultValue.toString().split(".")[1]?.length > 5) {
         currentNumber = parseFloat(resultValue.toFixed(5)).toString();
     } else {
         currentNumber = resultValue.toString();
@@ -62,19 +65,49 @@ function calculate() {
     operator = null;
     firstOperand = null;
     restart = true;
+    percentageValue = null;
     updateResult();
 }
 
+function clearCalculator() {
+    currentNumber = "";
+    firstOperand = null;
+    operator = null;
+    updateResult(true);
+}
 
+function setPercentage() {
+    let result = parseFloat(currentNumber) / 100;
 
+    if (["+", "-"].includes(operator)) {
+        result = result * (firstOperand || 1);
+    }
+
+    if (result.toString().slipt(".")[1]?.length > 5) {
+        result = result.toFixed(5).toString();
+    }
+    currentNumber = result.toString();
+    updateResult();
+}
 
 buttons.forEach((button) => {
     button.addEventListener("click", () => {
         const buttonText = button.innerText;
-        if (/^[0-9,]+$/.test(buttonText))
-        } else if (["+", "-", "*", "÷"]).includes(buttonText)) {
-    setOperator(buttonText);
-} else if (buttonText == "=") {
-    calculate();
-}
-    }
+        if (/^[0-9,]+$/.test(buttonText)) {
+            addDigit(buttonText);
+        } else if (["+", "-", "*", "÷"].includes(buttonText)) {
+            setOperator(buttonText);
+        } else if (buttonText == "=") {
+            calculate();
+        } else if (buttonText == "C") {
+            clearCalculator();
+        } else if (buttonText == "±") {
+            currentNumber = (
+                parseFloat(currentNumber || firstOperand) * -1
+            ).toString();
+            updateResult();
+        } else if (buttonText == "%") {
+            setPercentage();
+        }
+    });
+});
